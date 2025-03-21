@@ -7,7 +7,7 @@ import '../providers/task_provider.dart';
 import 'task_detail_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +184,7 @@ class HomeScreen extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               Text(
-                'Due: ${dateFormat.format(task.dueDate)}',
+                'Due: ${dateFormat.format(task.dueDate)} at ${DateFormat('HH:mm').format(task.dueDate)}',
                 style: TextStyle(
                   color: task.status == 0 && task.dueDate.isBefore(DateTime.now())
                       ? Colors.red
@@ -211,12 +211,10 @@ class HomeScreen extends StatelessWidget {
     final searchController = TextEditingController(text: taskProvider.searchQuery);
     
     showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Search Tasks'),
-      content: SizedBox(
-        width: double.maxFinite, 
-        child: TextField(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Search Tasks'),
+        content: TextField(
           controller: searchController,
           decoration: const InputDecoration(
             hintText: 'Enter search term...',
@@ -224,25 +222,23 @@ class HomeScreen extends StatelessWidget {
           ),
           autofocus: true,
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              taskProvider.setSearchQuery('');
+            },
+            child: const Text('CLEAR'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              taskProvider.setSearchQuery(searchController.text);
+            },
+            child: const Text('SEARCH'),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-            taskProvider.setSearchQuery('');
-          },
-          child: const Text('CLEAR'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-            taskProvider.setSearchQuery(searchController.text);
-          },
-          child: const Text('SEARCH'),
-        ),
-      ],
-      contentPadding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-    ),
-  );
+    );
   }
 }

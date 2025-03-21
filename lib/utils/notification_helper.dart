@@ -44,11 +44,12 @@ class NotificationHelper {
     // Only schedule notifications for future due dates
     if (task.dueDate.isBefore(now)) return;
 
-    // Schedule notification for the due date
+    final timeString = '${task.dueDate.hour.toString().padLeft(2, '0')}:${task.dueDate.minute.toString().padLeft(2, '0')}';
+    
     await flutterLocalNotificationsPlugin.zonedSchedule(
       task.id!,
       'Task Due: ${task.title}',
-      task.description,
+      'Due at $timeString: ${task.description}',
       tz.TZDateTime.from(task.dueDate, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(

@@ -9,7 +9,7 @@ import '../utils/notification_helper.dart';
 class TaskDetailScreen extends StatefulWidget {
   final int? taskId;
 
-  const TaskDetailScreen({super.key, this.taskId});
+  const TaskDetailScreen({Key? key, this.taskId}) : super(key: key);
 
   @override
   _TaskDetailScreenState createState() => _TaskDetailScreenState();
@@ -20,6 +20,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   DateTime _dueDate = DateTime.now().add(const Duration(days: 1));
+  TimeOfDay _dueTime = TimeOfDay.now();
   bool _isCompleted = false;
   bool _isLoading = false;
   bool _isEditMode = false;
@@ -44,6 +45,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         _titleController.text = task.title;
         _descriptionController.text = task.description;
         _dueDate = task.dueDate;
+        _dueTime = TimeOfDay.fromDateTime(task.dueDate);
         _isCompleted = task.status == 1;
       }
 
@@ -106,7 +108,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Due Date',
+                              'Due Date & Time',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -119,6 +121,14 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                               ),
                               trailing: const Icon(Icons.calendar_today),
                               onTap: _selectDueDate,
+                            ),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(
+                                'Time: ${_dueTime.format(context)}',
+                              ),
+                              trailing: const Icon(Icons.access_time),
+                              onTap: _selectDueTime,
                             ),
                           ],
                         ),
@@ -168,17 +178,38 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       });
     }
   }
+  
+  Future<void> _selectDueTime() async {
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _dueTime,
+    );
+
+    if (pickedTime != null) {
+      setState(() {
+        _dueTime = pickedTime;
+      });
+    }
+  }
 
   Future<void> _saveTask() async {
     if (_formKey.currentState?.validate() ?? false) {
       final taskProvider = Provider.of<TaskProvider>(context, listen: false);
+      
+      final combinedDueDateTime = DateTime(
+        _dueDate.year,
+        _dueDate.month,
+        _dueDate.day,
+        _dueTime.hour,
+        _dueTime.minute,
+      );
       
       final task = Task(
         id: widget.taskId,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         status: _isCompleted ? 1 : 0,
-        dueDate: _dueDate,
+        dueDate: combinedDueDateTime,
       );
 
       if (_isEditMode) {
